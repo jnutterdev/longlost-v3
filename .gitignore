@@ -5,3 +5,4 @@ dist/
 !.env.example
 .astro/
 .tina/__generated__/
+.DS_Store
