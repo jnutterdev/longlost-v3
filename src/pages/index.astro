@@ -1,0 +1,356 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import DiamondDivider from '../components/DiamondDivider.astro';
+import { getCollection } from 'astro:content';
+
+const allPosts = await getCollection('posts');
+const sorted = allPosts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+const hero = sorted.find(p => p.data.featured) ?? sorted[0];
+const feed = sorted.filter(p => p.id !== hero.id).slice(0, 4);
+
+function fmt(d: Date) {
+  const m = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${m[d.getMonth()]} ${String(d.getDate()).padStart(2, '0')} ${d.getFullYear()}`;
+}
+
+const isShort = (tag: string) => ['take', 'note', 'fragment'].includes(tag);
+---
+
+<BaseLayout title="longlostforgotten.com">
+  <section
+    class="hero"
+    style={hero.data.image ? `background-image: url('${hero.data.image}')` : undefined}
+  >
+    <div class="hero-fade"></div>
+    <!-- desktop: text overlaid on image -->
+    <div class="hero-content">
+      <p class="hero-tag">— featured</p>
+      <a href={`/posts/${hero.slug}`} class="hero-title-link">
+        <h1 class="hero-title">{hero.data.title}</h1>
+      </a>
+      <p class="hero-sub">{hero.data.excerpt}</p>
+      <div class="hero-meta">
+        <span>{fmt(hero.data.date)}</span>
+        <span class="hero-meta-dot">·</span>
+        <span class="hero-meta-tag">{hero.data.tag}</span>
+        <span class="hero-meta-dot">·</span>
+        <span>{hero.data.readTime}</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- mobile: featured post card sits below the image, no text-on-image conflict -->
+  <div class="featured-card">
+    <div class="featured-meta">
+      <span class="featured-label">— featured</span>
+      <span>·</span>
+      <span class="post-tag">{hero.data.tag}</span>
+      <span>·</span>
+      <span>{fmt(hero.data.date)}</span>
+      <span>·</span>
+      <span>{hero.data.readTime}</span>
+    </div>
+    <a href={`/posts/${hero.slug}`} class="featured-title-link">
+      <h2 class="featured-title">{hero.data.title}</h2>
+    </a>
+    <p class="featured-excerpt">{hero.data.excerpt}</p>
+    <a href={`/posts/${hero.slug}`} class="post-read">continue reading →</a>
+  </div>
+
+  <DiamondDivider />
+
+  <div class="feed">
+    <p class="section-label">— recent transmissions</p>
+
+    {feed.map(post => (
+      <article class={`post${isShort(post.data.tag) ? ' post--short' : ''}`}>
+        <div class="post-meta">
+          <span class="post-tag">{post.data.tag}</span>
+          <span>·</span>
+          <span>{fmt(post.data.date)}</span>
+          <span>·</span>
+          <span>{post.data.readTime}</span>
+        </div>
+        <a href={`/posts/${post.slug}`} class="post-title-link">
+          <h2 class="post-title">{post.data.title}</h2>
+        </a>
+        <p class="post-excerpt">{post.data.excerpt}</p>
+        <a href={`/posts/${post.slug}`} class="post-read">continue reading →</a>
+      </article>
+    ))}
+  </div>
+</BaseLayout>
+
+<style>
+  .hero {
+    position: relative;
+    height: 65vh;
+    min-height: 400px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    padding-bottom: 2.5rem;
+    z-index: 10;
+    background-color: var(--ink);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-image: url('/images/longlost_neon_night.png');
+  }
+
+  .hero-fade {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to top,
+      rgba(37, 27, 30, 0.92) 0%,
+      rgba(37, 27, 30, 0.4) 45%,
+      transparent 100%
+    );
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 0 2rem;
+    width: 100%;
+    max-width: 860px;
+  }
+
+  .hero-tag {
+    font-family: "Share Tech Mono", monospace;
+    font-size: 0.675rem;
+    letter-spacing: 0.3em;
+    color: var(--teal);
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+  }
+
+  .hero-title-link {
+    text-decoration: none;
+    display: block;
+    margin-bottom: 0.75rem;
+  }
+
+  .hero-title {
+    font-family: "Barlow Condensed", sans-serif;
+    font-weight: 900;
+    font-size: clamp(2.4rem, 4vw, 3.5rem);
+    color: var(--headline);
+    text-transform: uppercase;
+    line-height: 0.95;
+    letter-spacing: 0.02em;
+    filter: url(#grunge);
+    transition: color 0.4s, filter 0.4s;
+  }
+
+  .hero-title-link:hover .hero-title {
+      filter: drop-shadow(0 -1rem 0.5rem #a000d2);
+      transition: 0.4s;
+  }
+
+  .hero-sub {
+    font-family: "Share Tech Mono", monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    color: var(--sand-dim);
+    margin-bottom: 1.1rem;
+  }
+
+  .hero-meta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    font-family: "Share Tech Mono", monospace;
+    font-size: 0.625rem;
+    letter-spacing: 0.18em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+  }
+
+  .hero-meta-dot { color: var(--line); }
+  .hero-meta-tag { color: var(--teal-dim); }
+
+  .feed {
+    position: relative;
+    z-index: 10;
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 2rem 2rem 6rem;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .section-label {
+    font-family: "Share Tech Mono", monospace;
+    font-size: 0.625rem;
+    letter-spacing: 0.3em;
+    color: var(--teal-dim);
+    text-transform: uppercase;
+    margin-bottom: 1.8rem;
+  }
+
+  .post {
+    padding: 1.8rem 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .post:last-child {
+    border-bottom: none;
+  }
+
+  .post-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-family: "Share Tech Mono", monospace;
+    font-size: 0.625rem;
+    letter-spacing: 0.15em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+  }
+
+  .post-tag {
+    color: var(--teal);
+    border: 1px solid var(--teal-ghost);
+    padding: 2px 6px;
+    font-size: 0.625rem;
+    letter-spacing: 0.12em;
+  }
+
+  .post-title-link {
+    text-decoration: none;
+    display: block;
+    margin-bottom: 0.65rem;
+  }
+
+  .post-title {
+    font-family: "Barlow Condensed", sans-serif;
+    font-weight: 900;
+    font-size: 2.2rem;
+    color: var(--headline);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    line-height: 1;
+    transition: color 0.4s, filter 0.4s;
+  }
+
+  .post-title-link:hover .post-title {
+    color: var(--sand);
+    filter: drop-shadow(0 -1rem 0.5rem rgb(160 0 210 / 45%));
+    transition: 0.4s;
+  }
+
+  .post-excerpt {
+    font-family: "Josefin Sans", sans-serif;
+    font-weight: 300;
+    font-size: 1rem;
+    color: var(--text-body);
+    line-height: 1.75;
+    letter-spacing: 0.02em;
+    margin-bottom: 0.9rem;
+  }
+
+  .post-read {
+    font-family: "Share Tech Mono", monospace;
+    font-size: 0.625rem;
+    letter-spacing: 0.2em;
+    color: var(--teal);
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: color 0.4s, filter 0.4s;
+  }
+
+  .post-read:hover {
+    color: var(--sand);
+    filter: drop-shadow(0 -1rem 0.5rem #a000d2);
+    transition: 0.4s;
+  }
+
+  .post--short .post-title { font-size: 1.8rem; }
+  .post--short .post-excerpt { font-size: 0.9rem; }
+
+  /* featured card — hidden on desktop, shown on mobile */
+  .featured-card {
+    display: none;
+  }
+
+  @media (max-width: 640px) {
+    /* hero becomes pure image — no overlay text */
+    .hero {
+      height: 0vh;
+      min-height: 200px;
+      background-position: center 30%;
+      padding-bottom: 0;
+    }
+
+    .hero-content {
+      display: none;
+    }
+
+    /* featured card appears below the image */
+    .featured-card {
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      z-index: 10;
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 1.5rem 2rem 0;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 1.5rem;
+    }
+
+    .featured-meta {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-family: "Share Tech Mono", monospace;
+      font-size: 0.625rem;
+      letter-spacing: 0.15em;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-bottom: 0.75rem;
+    }
+
+    .featured-label {
+      color: var(--teal-dim);
+    }
+
+    .featured-title-link {
+      text-decoration: none;
+      display: block;
+      margin-bottom: 0.65rem;
+    }
+
+    .featured-title {
+      font-family: "Barlow Condensed", sans-serif;
+      font-weight: 900;
+      font-size: 2rem;
+      color: var(--headline);
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      line-height: 0.95;
+      transition: color 0.4s;
+    }
+
+    .featured-title-link:hover .featured-title {
+        filter: drop-shadow(0 -1rem 0.5rem #a000d2);
+        transition: 0.4s;
+    }
+
+    .featured-excerpt {
+      font-family: "Josefin Sans", sans-serif;
+      font-weight: 300;
+      font-size: 0.95rem;
+      color: var(--text-body);
+      line-height: 1.75;
+      letter-spacing: 0.02em;
+      margin-bottom: 0.9rem;
+    }
+  }
+</style>

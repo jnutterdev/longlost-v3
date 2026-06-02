@@ -1,0 +1,180 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import DiamondDivider from '../components/DiamondDivider.astro';
+import { getCollection } from 'astro:content';
+
+const allPosts = await getCollection('posts');
+const sorted = allPosts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+
+const byYear = sorted.reduce<Record<number, typeof sorted>>((acc, post) => {
+  const year = post.data.date.getFullYear();
+  (acc[year] ??= []).push(post);
+  return acc;
+}, {});
+const years = Object.keys(byYear).map(Number).sort((a, b) => b - a);
+
+function fmtShort(d: Date) {
+  const m = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${m[d.getMonth()]} ${String(d.getDate()).padStart(2, '0')}`;
+}
+---
+
+<BaseLayout title="Archive — longlostforgotten.com">
+  <div class="page-header">
+    <p class="section-label">— all transmissions</p>
+    <h1>The <span>Archive</span></h1>
+  </div>
+
+  <DiamondDivider />
+
+  <div class="archive">
+    {years.map(year => (
+      <div class="year-group">
+        <div class="year-marker">{year}</div>
+        <span class="year-label">— {year}</span>
+        {byYear[year].map(post => (
+          <a href={`/posts/${post.slug}`} class="archive-entry">
+            <span class="entry-date">{fmtShort(post.data.date)}</span>
+            <div class="entry-right">
+              <span class="entry-tag">{post.data.tag}</span>
+              <span class="entry-title">{post.data.title}</span>
+              <span class="entry-meta">{post.data.readTime}</span>
+            </div>
+          </a>
+        ))}
+      </div>
+    ))}
+  </div>
+</BaseLayout>
+
+<style>
+  .page-header {
+    position: relative;
+    z-index: 10;
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 4rem 2rem 0;
+  }
+
+  .section-label {
+    font-family: "Share Tech Mono", monospace;
+    font-size: 0.625rem;
+    letter-spacing: 0.3em;
+    color: var(--teal-dim);
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+  }
+
+  .page-header h1 {
+    font-family: "Barlow Condensed", sans-serif;
+    font-weight: 900;
+    font-size: clamp(3rem, 6vw, 5rem);
+    color: var(--headline);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    line-height: 0.92;
+  }
+
+  .page-header h1 span { color: var(--pink); }
+
+  .archive {
+    position: relative;
+    z-index: 10;
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 2.5rem 2rem 6rem;
+  }
+
+  .year-group {
+    margin-bottom: 3rem;
+  }
+
+  .year-marker {
+    font-family: "Barlow Condensed", sans-serif;
+    font-weight: 900;
+    font-size: clamp(5rem, 12vw, 9rem);
+    color: rgba(200, 200, 141, 0.04);
+    letter-spacing: -0.02em;
+    line-height: 1;
+    text-align: right;
+    margin-right: -0.5rem;
+    margin-bottom: -2rem;
+    user-select: none;
+    pointer-events: none;
+  }
+
+  .year-label {
+    display: block;
+    font-family: "Share Tech Mono", monospace;
+    font-size: 0.625rem;
+    letter-spacing: 0.3em;
+    color: var(--teal-dim);
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+  }
+
+  .archive-entry {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0 1.5rem;
+    align-items: baseline;
+    padding: 0.9rem 0;
+    border-bottom: 1px solid var(--line);
+    text-decoration: none;
+  }
+
+  .archive-entry:first-of-type {
+    border-top: 1px solid var(--line);
+  }
+
+  .archive-entry:hover .entry-title {
+    color: var(--sand);
+    filter: drop-shadow(0 -0.5rem 0.4rem #a000d2);
+  }
+
+  .entry-date {
+    font-family: "Share Tech Mono", monospace;
+    font-size: 0.625rem;
+    letter-spacing: 0.12em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    white-space: nowrap;
+    padding-top: 0.1rem;
+  }
+
+  .entry-right {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .entry-tag {
+    font-family: "Share Tech Mono", monospace;
+    font-size: 0.5rem;
+    letter-spacing: 0.18em;
+    color: var(--teal);
+    text-transform: uppercase;
+    border: 1px solid var(--teal-ghost);
+    padding: 1px 5px;
+    align-self: flex-start;
+  }
+
+  .entry-title {
+    font-family: "Barlow Condensed", sans-serif;
+    font-weight: 700;
+    font-size: 1.35rem;
+    color: var(--headline);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    line-height: 1.1;
+    transition: color 0.4s, filter 0.4s;
+  }
+
+  .entry-meta {
+    font-family: "Share Tech Mono", monospace;
+    font-size: 0.5rem;
+    letter-spacing: 0.12em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+  }
+</style>

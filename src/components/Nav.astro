@@ -1,0 +1,213 @@
+---
+const { pathname } = Astro.url;
+const isHome = pathname === '/';
+const isArchive = pathname.startsWith('/archive');
+const isAbout = pathname === '/about';
+---
+
+<nav>
+  <a href="/" class="nav-mark">
+    <div class="monogram">LLF</div>
+    longlostforgotten
+  </a>
+
+  <div class="nav-links">
+    <a href="/" class={isHome ? 'active' : undefined}>Home</a>
+    <a href="/archive" class={isArchive ? 'active' : undefined}>Archive</a>
+    <a href="/about" class={isAbout ? 'active' : undefined}>About</a>
+  </div>
+
+  <button
+    class="nav-toggle"
+    id="nav-toggle"
+    aria-label="Toggle navigation"
+    aria-expanded="false"
+    aria-controls="nav-drawer"
+  >
+    <span></span>
+    <span></span>
+    <span></span>
+  </button>
+</nav>
+
+<!-- drawer lives outside <nav> so sticky+backdrop-filter doesn't affect hit-testing -->
+<div class="nav-drawer" id="nav-drawer" aria-hidden="true">
+  <a href="/" class={isHome ? 'active' : undefined}>Home</a>
+  <a href="/archive" class={isArchive ? 'active' : undefined}>Archive</a>
+  <a href="/about" class={isAbout ? 'active' : undefined}>About</a>
+</div>
+
+<script>
+  const toggle = document.getElementById('nav-toggle') as HTMLButtonElement | null;
+  const drawer = document.getElementById('nav-drawer');
+
+  toggle?.addEventListener('click', () => {
+    const isOpen = drawer?.classList.toggle('open') ?? false;
+    toggle.setAttribute('aria-expanded', String(isOpen));
+    toggle.classList.toggle('open', isOpen);
+    drawer?.setAttribute('aria-hidden', String(!isOpen));
+  });
+</script>
+
+<style>
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 150;
+    background: rgba(37, 27, 30, 0.88);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 2rem;
+    height: 52px;
+  }
+
+  .nav-mark {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    font-family: "Share Tech Mono", monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    color: var(--teal);
+    text-transform: uppercase;
+    text-decoration: none;
+  }
+
+  .monogram {
+    width: 28px;
+    height: 28px;
+    border: 1px solid var(--teal-dim);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: "Barlow Condensed", sans-serif;
+    font-weight: 900;
+    font-size: 0.9rem;
+    color: var(--pink);
+    letter-spacing: 0.05em;
+    flex-shrink: 0;
+  }
+
+  /* ── desktop links ── */
+  .nav-links {
+    display: flex;
+    gap: 2rem;
+  }
+
+  .nav-links a {
+    font-family: "Josefin Sans", sans-serif;
+    font-weight: 300;
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--sand);
+    text-decoration: none;
+    transition: color 0.4s, filter 0.4s;
+  }
+
+  .nav-links a:hover {
+    color: var(--sand);
+    filter: drop-shadow(0 -1rem 0.5rem #a000d2);
+  }
+
+  .nav-links a.active {
+    color: var(--pink);
+  }
+
+  /* ── hamburger button ── */
+  .nav-toggle {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    width: 28px;
+    height: 28px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    flex-shrink: 0;
+  }
+
+  .nav-toggle span {
+    display: block;
+    width: 18px;
+    height: 1px;
+    background: var(--sand);
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    transform-origin: center;
+  }
+
+  .nav-toggle.open span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+  .nav-toggle.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+  .nav-toggle.open span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+  /* ── mobile drawer — fixed, outside nav stacking context ── */
+  .nav-drawer {
+    display: none;
+  }
+
+  @media (max-width: 640px) {
+    .nav-links {
+      display: none;
+    }
+
+    .nav-toggle {
+      display: flex;
+    }
+
+    .nav-drawer {
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 52px;
+      left: 0;
+      right: 0;
+      z-index: 149;
+      background: rgba(26, 17, 21, 0.97);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--line);
+      padding: 0.5rem 0;
+      clip-path: inset(0 0 100% 0);
+      transition: clip-path 0.25s ease;
+      pointer-events: none;
+    }
+
+    .nav-drawer.open {
+      clip-path: inset(0);
+      pointer-events: auto;
+    }
+
+    .nav-drawer a {
+      font-family: "Josefin Sans", sans-serif;
+      font-weight: 300;
+      font-size: 0.8rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--sand);
+      text-decoration: none;
+      padding: 0.85rem 2rem;
+      border-bottom: 1px solid var(--line);
+      transition: color 0.4s, filter 0.4s;
+    }
+
+    .nav-drawer a:last-child {
+      border-bottom: none;
+    }
+
+    .nav-drawer a.active {
+      color: var(--pink);
+    }
+
+    .nav-drawer a:hover {
+      color: var(--sand);
+      filter: drop-shadow(0 -0.5rem 0.4rem #a000d2);
+    }
+  }
+</style>

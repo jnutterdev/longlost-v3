@@ -1,0 +1,253 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('posts');
+  return posts.map(post => ({
+    params: { slug: post.slug },
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props;
+const { Content } = await post.render();
+
+const allPosts = await getCollection('posts');
+const sorted = allPosts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+const idx = sorted.findIndex(p => p.id === post.id);
+const prev = idx < sorted.length - 1 ? sorted[idx + 1] : null;
+const next = idx > 0 ? sorted[idx - 1] : null;
+
+function fmt(d: Date) {
+  const m = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${m[d.getMonth()]} ${String(d.getDate()).padStart(2, '0')} ${d.getFullYear()}`;
+}
+---
+
+<BaseLayout title={`${post.data.title} — longlostforgotten.com`} description={post.data.excerpt}>
+  <div class="post-wrap">
+    <header class="post-header">
+      <div class="post-header-meta">
+        <span class="post-tag">{post.data.tag}</span>
+        <span class="meta-text">{fmt(post.data.date)}</span>
+        <span class="meta-dot">·</span>
+        <span class="meta-text">{post.data.readTime}</span>
+      </div>
+      <h1 class="post-title">{post.data.title}</h1>
+      <p class="post-deck">{post.data.excerpt}</p>
+    </header>
+
+    {post.data.image && (
+      <div class="post-image">
+        <img src={post.data.image} alt={post.data.title} />
+      </div>
+    )}
+
+    <div class="post-body">
+      <Content />
+    </div>
+
+    <hr class="post-rule" />
+
+    <div class="filed-under">
+      <span class="filed-label">filed under</span>
+      <a href="/archive" class="filed-tag">{post.data.tag}</a>
+    </div>
+
+    <nav class="post-nav" aria-label="Adjacent posts">
+      {prev ? (
+        <a href={`/posts/${prev.slug}`} class="post-nav-item post-nav-item--prev">
+          <span class="nav-direction">← previous</span>
+          <span class="nav-title">{prev.data.title}</span>
+        </a>
+      ) : <div />}
+      {next ? (
+        <a href={`/posts/${next.slug}`} class="post-nav-item post-nav-item--next">
+          <span class="nav-direction">next →</span>
+          <span class="nav-title">{next.data.title}</span>
+        </a>
+      ) : <div />}
+    </nav>
+  </div>
+</BaseLayout>
+
+<style>
+  .post-wrap {
+    position: relative;
+    z-index: 10;
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 4rem 2rem 6rem;
+  }
+
+  .post-header {
+    margin-bottom: 2.5rem;
+  }
+
+  .post-header-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+  }
+
+  .post-tag {
+    font-family: "Share Tech Mono", monospace;
+    font-size: 0.625rem;
+    letter-spacing: 0.12em;
+    color: var(--teal);
+    text-transform: uppercase;
+    border: 1px solid var(--teal-ghost);
+    padding: 2px 6px;
+  }
+
+  .meta-text {
+    font-family: "Share Tech Mono", monospace;
+    font-size: 0.625rem;
+    letter-spacing: 0.15em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+  }
+
+  .meta-dot { color: var(--line); }
+
+  .post-title {
+    font-family: "Barlow Condensed", sans-serif;
+    font-weight: 900;
+    font-size: clamp(2.2rem, 5vw, 3.6rem);
+    color: var(--pink);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    line-height: 0.95;
+    margin-bottom: 1rem;
+  }
+
+  .post-deck {
+    font-family: "Share Tech Mono", monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    color: var(--sand-dim);
+    line-height: 1.6;
+  }
+
+  .post-image {
+    width: 100%;
+    aspect-ratio: 16/9;
+    border: 1px solid var(--line);
+    margin: 2rem 0;
+    overflow: hidden;
+  }
+
+  .post-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .post-body {
+    font-family: "Josefin Sans", sans-serif;
+    font-weight: 300;
+    font-size: 1rem;
+    color: var(--text-body);
+    line-height: 1.85;
+    letter-spacing: 0.02em;
+  }
+
+  .post-body :global(p + p) {
+    margin-top: 1.4rem;
+  }
+
+  .post-body :global(h2) {
+    font-family: "Barlow Condensed", sans-serif;
+    font-weight: 700;
+    font-size: 1.5rem;
+    color: var(--headline);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    line-height: 1;
+    margin: 2.5rem 0 1rem;
+  }
+
+  .post-body :global(blockquote) {
+    border-left: 2px solid var(--teal-dim);
+    padding: 0.5rem 0 0.5rem 1.25rem;
+    margin: 1.8rem 0;
+    font-style: italic;
+    color: var(--sand-dim);
+  }
+
+  .post-rule {
+    border: none;
+    border-top: 1px solid var(--line);
+    margin: 3rem 0 2rem;
+  }
+
+  .filed-under {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: 2.5rem;
+  }
+
+  .filed-label {
+    font-family: "Share Tech Mono", monospace;
+    font-size: 0.5rem;
+    letter-spacing: 0.2em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+  }
+
+  .filed-tag {
+    font-family: "Share Tech Mono", monospace;
+    font-size: 0.5rem;
+    letter-spacing: 0.15em;
+    color: var(--teal);
+    text-transform: uppercase;
+    border: 1px solid var(--teal-ghost);
+    padding: 2px 6px;
+    text-decoration: none;
+    transition: color 0.4s;
+  }
+
+  .filed-tag:hover { color: var(--sand); }
+
+  .post-nav {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  .post-nav-item {
+    padding: 1rem;
+    border: 1px solid var(--line);
+    text-decoration: none;
+    transition: border-color 0.4s;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .post-nav-item:hover { border-color: var(--teal-dim); }
+  .post-nav-item--next { text-align: right; }
+
+  .nav-direction {
+    font-family: "Share Tech Mono", monospace;
+    font-size: 0.5rem;
+    letter-spacing: 0.2em;
+    color: var(--teal-dim);
+    text-transform: uppercase;
+  }
+
+  .nav-title {
+    font-family: "Barlow Condensed", sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--headline);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    line-height: 1.1;
+  }
+</style>

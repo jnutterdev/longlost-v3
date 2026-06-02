@@ -1,0 +1,15 @@
+{
+  "name": "longlost-v3",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "cms": "npx tinacms dev -c \"astro dev\""
+  },
+  "dependencies": {
+    "astro": "^4.16.0",
+    "tinacms": "^2.0.0"
+  }
+}

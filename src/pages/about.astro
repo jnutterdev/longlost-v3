@@ -1,0 +1,210 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import DiamondDivider from '../components/DiamondDivider.astro';
+---
+
+<BaseLayout title="About — longlostforgotten.com">
+  <div class="page-header">
+    <p class="section-label">— who sent this</p>
+    <h1>About <span>Me</span></h1>
+  </div>
+
+  <DiamondDivider />
+
+  <div class="about">
+    <div class="about-layout">
+      <div class="photo-slot"></div>
+
+      <div class="bio">
+        <span class="bio-handle">longlostforgotten</span>
+        <div class="bio-name">Your Name Here</div>
+
+        <p>
+          I write things here. Essays mostly, takes sometimes, fragments when I can't finish a thought.
+          No particular subject. I'm interested in cities at night, the way memory distorts things,
+          music that sounds like weather, and objects that outlast their context.
+        </p>
+
+        <p>
+          Based in Atlanta. Developer by trade. Collector of things that don't fit anywhere specific.
+        </p>
+
+        <p>
+          This site has been running since 2014 under various names and intentions. The current version
+          is the most honest version — which is to say, it doesn't pretend to be anything other than
+          a place I write.
+        </p>
+
+        <hr class="bio-rule" />
+
+        <div>
+          <span class="bio-elsewhere">— elsewhere</span>
+          <div class="bio-links">
+            <a href="#">longlostforgotten on bandcamp</a>
+            <a href="#">longlostforgotten on letterboxd</a>
+            <a href="#">longlostforgotten on last.fm</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .page-header {
+    position: relative;
+    z-index: 10;
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 4rem 2rem 0;
+  }
+
+  .section-label {
+    font-family: "Share Tech Mono", monospace;
+    font-size: 0.625rem;
+    letter-spacing: 0.3em;
+    color: var(--teal-dim);
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+  }
+
+  .page-header h1 {
+    font-family: "Barlow Condensed", sans-serif;
+    font-weight: 900;
+    font-size: clamp(3rem, 6vw, 5rem);
+    color: var(--headline);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    line-height: 0.92;
+  }
+
+  .page-header h1 span { color: var(--pink); }
+
+  .about {
+    position: relative;
+    z-index: 10;
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 2.5rem 2rem 6rem;
+  }
+
+  .about-layout {
+    display: grid;
+    grid-template-columns: 160px 1fr;
+    gap: 2.5rem;
+    align-items: start;
+  }
+
+  .photo-slot {
+    aspect-ratio: 3/4;
+    background: linear-gradient(
+      160deg,
+      rgba(74, 143, 160, 0.3) 0%,
+      rgba(37, 27, 30, 0.9) 60%,
+      rgba(251, 102, 164, 0.08) 100%
+    );
+    border: 1px solid var(--line);
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .photo-slot::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      to bottom,
+      transparent,
+      transparent 3px,
+      rgba(0, 0, 0, 0.12) 3px,
+      rgba(0, 0, 0, 0.12) 4px
+    );
+    pointer-events: none;
+  }
+
+  .photo-slot::after {
+    content: "photo";
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: "Share Tech Mono", monospace;
+    font-size: 0.5rem;
+    letter-spacing: 0.3em;
+    color: rgba(200, 200, 141, 0.08);
+    text-transform: uppercase;
+  }
+
+  .bio {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+  }
+
+  .bio-handle {
+    font-family: "Share Tech Mono", monospace;
+    font-size: 0.625rem;
+    letter-spacing: 0.3em;
+    color: var(--teal);
+    text-transform: uppercase;
+  }
+
+  .bio-name {
+    font-family: "Barlow Condensed", sans-serif;
+    font-weight: 900;
+    font-size: 2rem;
+    color: var(--headline);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    line-height: 1;
+  }
+
+  .bio p {
+    font-family: "Josefin Sans", sans-serif;
+    font-weight: 300;
+    font-size: 0.95rem;
+    color: var(--text-body);
+    line-height: 1.8;
+    letter-spacing: 0.02em;
+  }
+
+  .bio-rule {
+    border: none;
+    border-top: 1px solid var(--line);
+    margin: 0.5rem 0;
+  }
+
+  .bio-elsewhere {
+    display: block;
+    font-family: "Share Tech Mono", monospace;
+    font-size: 0.5rem;
+    letter-spacing: 0.2em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+
+  .bio-links {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .bio-links a {
+    font-family: "Share Tech Mono", monospace;
+    font-size: 0.625rem;
+    letter-spacing: 0.15em;
+    color: var(--teal);
+    text-transform: lowercase;
+    text-decoration: none;
+    transition: color 0.4s, filter 0.4s;
+  }
+
+  .bio-links a::before { content: "→ "; }
+
+  .bio-links a:hover {
+    color: var(--sand);
+    filter: drop-shadow(0 -0.5rem 0.4rem #a000d2);
+  }
+</style>
