@@ -76,7 +76,8 @@ async function postToBluesky(text, linkUrl, image) {
     createdAt: new Date().toISOString(),
   };
 
-  if (image) {
+  const BLUESKY_MAX_IMAGE_BYTES = 2_000_000;
+  if (image && image.buffer.byteLength <= BLUESKY_MAX_IMAGE_BYTES) {
     const blobRes = await fetch('https://bsky.social/xrpc/com.atproto.repo.uploadBlob', {
       method: 'POST',
       headers: { 'Content-Type': image.contentType, Authorization: `Bearer ${accessJwt}` },
@@ -91,6 +92,8 @@ async function postToBluesky(text, linkUrl, image) {
     } else {
       console.warn('Bluesky image upload failed, posting without image.');
     }
+  } else if (image) {
+    console.warn(`Image too large for Bluesky (${(image.buffer.byteLength / 1_000_000).toFixed(1)}MB, max 2MB), posting without image.`);
   }
 
   const postRes = await fetch('https://bsky.social/xrpc/com.atproto.repo.createRecord', {
