@@ -120,6 +120,11 @@ var config_default = defineConfig({
             label: "Featured"
           },
           {
+            type: "boolean",
+            name: "draft",
+            label: "Draft"
+          },
+          {
             type: "rich-text",
             name: "body",
             label: "Body",

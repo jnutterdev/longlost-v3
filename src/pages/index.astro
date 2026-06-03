@@ -3,7 +3,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import DiamondDivider from '../components/DiamondDivider.astro';
 import { getCollection } from 'astro:content';
 
-const allPosts = await getCollection('posts');
+const allPosts = await getCollection('posts', ({ data }) => !data.draft);
 const sorted = allPosts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 const hero = sorted.find(p => p.data.featured) ?? sorted[0];
 const feed = sorted.filter(p => p.id !== hero.id).slice(0, 4);

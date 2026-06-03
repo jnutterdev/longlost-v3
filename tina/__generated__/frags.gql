@@ -24,5 +24,6 @@ fragment PostParts on Post {
   excerpt
   image
   featured
+  draft
   body
 }

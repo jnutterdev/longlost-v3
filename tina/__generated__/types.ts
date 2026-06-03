@@ -261,6 +261,7 @@ export type Post = Node & Document & {
   excerpt: Scalars['String']['output'];
   image?: Maybe<Scalars['String']['output']>;
   featured?: Maybe<Scalars['Boolean']['output']>;
+  draft?: Maybe<Scalars['Boolean']['output']>;
   body?: Maybe<Scalars['JSON']['output']>;
   id: Scalars['ID']['output'];
   _sys: SystemInfo;
@@ -294,6 +295,7 @@ export type PostFilter = {
   excerpt?: InputMaybe<StringFilter>;
   image?: InputMaybe<ImageFilter>;
   featured?: InputMaybe<BooleanFilter>;
+  draft?: InputMaybe<BooleanFilter>;
   body?: InputMaybe<RichTextFilter>;
 };
 
@@ -417,12 +419,13 @@ export type PostMutation = {
   excerpt?: InputMaybe<Scalars['String']['input']>;
   image?: InputMaybe<Scalars['String']['input']>;
   featured?: InputMaybe<Scalars['Boolean']['input']>;
+  draft?: InputMaybe<Scalars['Boolean']['input']>;
   body?: InputMaybe<Scalars['JSON']['input']>;
 };
 
 export type AuthorPartsFragment = { __typename: 'Author', name: string, handle: string, bio?: Array<string | null> | null, photo?: { __typename: 'AuthorPhoto', src?: string | null, alt?: string | null } | null, links?: Array<{ __typename: 'AuthorLinks', label: string, url: string } | null> | null };
 
-export type PostPartsFragment = { __typename: 'Post', title: string, date: string, tag: string, readTime: string, excerpt: string, image?: string | null, featured?: boolean | null, body?: any | null };
+export type PostPartsFragment = { __typename: 'Post', title: string, date: string, tag: string, readTime: string, excerpt: string, image?: string | null, featured?: boolean | null, draft?: boolean | null, body?: any | null };
 
 export type AuthorQueryVariables = Exact<{
   relativePath: Scalars['String']['input'];
@@ -448,7 +451,7 @@ export type PostQueryVariables = Exact<{
 }>;
 
 
-export type PostQuery = { __typename?: 'Query', post: { __typename: 'Post', id: string, title: string, date: string, tag: string, readTime: string, excerpt: string, image?: string | null, featured?: boolean | null, body?: any | null, _sys: { __typename?: 'SystemInfo', filename: string, basename: string, hasReferences?: boolean | null, breadcrumbs: Array<string>, path: string, relativePath: string, extension: string } } };
+export type PostQuery = { __typename?: 'Query', post: { __typename: 'Post', id: string, title: string, date: string, tag: string, readTime: string, excerpt: string, image?: string | null, featured?: boolean | null, draft?: boolean | null, body?: any | null, _sys: { __typename?: 'SystemInfo', filename: string, basename: string, hasReferences?: boolean | null, breadcrumbs: Array<string>, path: string, relativePath: string, extension: string } } };
 
 export type PostConnectionQueryVariables = Exact<{
   before?: InputMaybe<Scalars['String']['input']>;
@@ -460,7 +463,7 @@ export type PostConnectionQueryVariables = Exact<{
 }>;
 
 
-export type PostConnectionQuery = { __typename?: 'Query', postConnection: { __typename?: 'PostConnection', totalCount: number, pageInfo: { __typename?: 'PageInfo', hasPreviousPage: boolean, hasNextPage: boolean, startCursor: string, endCursor: string }, edges?: Array<{ __typename?: 'PostConnectionEdges', cursor: string, node?: { __typename: 'Post', id: string, title: string, date: string, tag: string, readTime: string, excerpt: string, image?: string | null, featured?: boolean | null, body?: any | null, _sys: { __typename?: 'SystemInfo', filename: string, basename: string, hasReferences?: boolean | null, breadcrumbs: Array<string>, path: string, relativePath: string, extension: string } } | null } | null> | null } };
+export type PostConnectionQuery = { __typename?: 'Query', postConnection: { __typename?: 'PostConnection', totalCount: number, pageInfo: { __typename?: 'PageInfo', hasPreviousPage: boolean, hasNextPage: boolean, startCursor: string, endCursor: string }, edges?: Array<{ __typename?: 'PostConnectionEdges', cursor: string, node?: { __typename: 'Post', id: string, title: string, date: string, tag: string, readTime: string, excerpt: string, image?: string | null, featured?: boolean | null, draft?: boolean | null, body?: any | null, _sys: { __typename?: 'SystemInfo', filename: string, basename: string, hasReferences?: boolean | null, breadcrumbs: Array<string>, path: string, relativePath: string, extension: string } } | null } | null> | null } };
 
 export const AuthorPartsFragmentDoc = gql`
     fragment AuthorParts on Author {
@@ -490,6 +493,7 @@ export const PostPartsFragmentDoc = gql`
   excerpt
   image
   featured
+  draft
   body
 }
     `;
@@ -669,7 +673,7 @@ export const ExperimentalGetTinaClient = () =>
   getSdk(
     generateRequester(
       createClient({
-        url: "https://content.tinajs.io/2.4/content/7e9a1db9-3ca9-439e-986d-328d5af5aae9/github/main",
+        url: "http://localhost:4001/graphql",
         queries,
       })
     )

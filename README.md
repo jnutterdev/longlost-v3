@@ -1,17 +1,22 @@
 # longlostforgotten.com
 
-Personal blog. No fixed subject. Built in Astro with TinaCMS.
+Personal blog. No fixed subject. Built with Astro and TinaCMS, deployed on Cloudflare Pages.
 
 ---
 
 ## Stack
 
-- **Framework**: Astro (static output)
-- **CMS**: TinaCMS (Git-backed)
-- **CSS**: Scoped component CSS + CSS custom properties
-- **Fonts**: [fonts.bunny.net](https://fonts.bunny.net) (Barlow Condensed, Josefin Sans, Share Tech Mono)
-- **Deploy**: Self-hosted VPS · GitHub Actions · SSH/rsync
-- **Reset**: normalize.css
+- **Framework**: Astro (hybrid output via `@astrojs/cloudflare`)
+- **CMS**: TinaCMS (Git-backed, Tina Cloud for production auth)
+- **CSS**: Scoped component CSS + CSS custom properties, no Tailwind
+- **Fonts**: [fonts.bunny.net](https://fonts.bunny.net) — Barlow Condensed, Josefin Sans, Share Tech Mono
+- **Deploy**: Cloudflare Pages + Wrangler
+
+---
+
+## Requirements
+
+Node.js `>=24.0.0` (LTS). Run `nvm use` in the project root to switch automatically via `.nvmrc`.
 
 ---
 
@@ -19,9 +24,11 @@ Personal blog. No fixed subject. Built in Astro with TinaCMS.
 
 ```bash
 npm install
-npm run dev       # http://localhost:4321
-npm run build     # static output to /dist
-npx tinacms dev   # run TinaCMS local editor alongside Astro dev
+npm run dev        # Astro dev server → http://localhost:4321
+npm run cms        # TinaCMS + Astro dev together → CMS at http://localhost:4321/admin
+npm run build      # tinacms build && astro build → /dist
+npm run preview    # build + wrangler local preview
+npm run deploy     # build + wrangler deploy to Cloudflare
 ```
 
 ---
@@ -29,32 +36,35 @@ npx tinacms dev   # run TinaCMS local editor alongside Astro dev
 ## Project Structure
 
 ```
-longlostforgotten/
+longlost-v3/
 ├── public/
-│   └── fonts/           # local font fallbacks (optional)
+│   ├── favicon.svg
+│   └── images/              # hero image, author photo, post images
 ├── src/
 │   ├── components/
-│   │   ├── Nav.astro
+│   │   ├── AtmosphericChrome.astro  # noise, deco SVG, signal bar, corner marks, grunge filter
+│   │   ├── Nav.astro                # sticky nav + hamburger menu (mobile)
 │   │   ├── Footer.astro
-│   │   ├── PostCard.astro
-│   │   ├── PostShort.astro
-│   │   ├── Divider.astro
-│   │   ├── DecoLayer.astro    # fixed SVG geometry + noise + scanlines
-│   │   └── CornerMarks.astro
+│   │   └── DiamondDivider.astro
 │   ├── layouts/
-│   │   ├── Base.astro         # global chrome (deco, nav, footer, signal bar)
-│   │   └── Post.astro         # single post layout
+│   │   └── BaseLayout.astro         # html shell, fonts, AtmosphericChrome, Nav, Footer
 │   ├── pages/
-│   │   ├── index.astro
-│   │   ├── archive.astro
-│   │   ├── about.astro
-│   │   └── [slug].astro       # dynamic post pages
+│   │   ├── index.astro              # hero + feed
+│   │   ├── archive.astro            # all posts grouped by year
+│   │   ├── about.astro              # populated from src/data/author.json
+│   │   └── posts/
+│   │       └── [slug].astro         # single post with prev/next nav
 │   ├── content/
-│   │   └── posts/             # .md / .mdx post files (TinaCMS managed)
+│   │   ├── config.ts                # Zod schema for posts collection
+│   │   └── posts/                   # Markdown post files (TinaCMS managed)
+│   ├── data/
+│   │   └── author.json              # author profile (TinaCMS managed)
 │   └── styles/
-│       └── global.css         # CSS custom properties + normalize import
+│       └── global.css               # CSS tokens, reset, body, keyframe animations
 ├── tina/
-│   └── config.ts              # TinaCMS schema
+│   └── config.ts                    # TinaCMS schema (Author + Post collections)
+├── .env.example
+├── .nvmrc
 ├── astro.config.mjs
 └── package.json
 ```
@@ -63,32 +73,52 @@ longlostforgotten/
 
 ## Content
 
-Posts live in `src/content/posts/` as Markdown files, managed via TinaCMS.
+### Posts
 
-### Frontmatter schema
+Posts live in `src/content/posts/` as Markdown files managed via TinaCMS.
+
+#### Frontmatter schema
 
 ```yaml
 ---
 title: "Post Title Here"
-slug: post-slug
 date: 2026-06-01
-tag: essay          # essay | take | note | review | fragment
-readTime: 8
-excerpt: "A short description shown in feed and archive."
-image: /images/post-image.jpg   # optional
-featured: true                   # optional — flags for homepage hero
+tag: essay           # essay | take | note | review | fragment
+readTime: 8 min read
+excerpt: "Shown in the feed, archive, and post header."
+image: /images/post-image.jpg   # optional — displayed inside the post only, not on the hero
+featured: true                   # optional — pins to homepage hero
+draft: true                      # optional — hides from all public pages and URLs
 ---
 ```
 
-The homepage hero pulls the post with `featured: true`. If none is set, falls back to the most recent post.
+- The homepage hero uses the post marked `featured: true`, falling back to the most recent published post.
+- Posts with `draft: true` are excluded from the feed, archive, and have no generated URL.
+- Post images only appear inside the post itself — the homepage hero always uses its own fixed background image.
+
+### Author
+
+Author data lives in `src/data/author.json`, editable via the **Author** global in TinaCMS:
+
+```json
+{
+  "name": "Your Name",
+  "handle": "yourhandle",
+  "photo": { "src": "/images/photo.jpg", "alt": "Alt text for the photo" },
+  "bio": ["Paragraph one.", "Paragraph two."],
+  "links": [
+    { "label": "yourhandle on bandcamp", "url": "https://..." }
+  ]
+}
+```
 
 ---
 
 ## Design System
 
-See `BRIEF.md` for the full design reference including color tokens, typography, layout specs, and animation definitions.
+See `mockup/BRIEF.md` for the full design reference — color tokens, typography, layout specs, and animation definitions.
 
-### Quick reference — CSS tokens
+### CSS tokens
 
 ```css
 --ink: #251b1e;
@@ -97,43 +127,65 @@ See `BRIEF.md` for the full design reference including color tokens, typography,
 --teal: #4a8fa0;
 --sand: #c8c88d;
 --headline: #e8f4f7;
---text-body: rgba(200,200,141,0.75);
---text-muted: rgba(200,200,141,0.30);
---line: rgba(200,200,141,0.14);
+--text-body: rgba(200, 200, 141, 0.75);
+--text-muted: rgba(200, 200, 141, 0.30);
+--line: rgba(200, 200, 141, 0.14);
 ```
 
 Fonts: `"Barlow Condensed"` (headlines) · `"Josefin Sans"` (UI + body) · `"Share Tech Mono"` (metadata)
+
+Minimum font size: `0.625rem`.
 
 ---
 
 ## Deployment
 
-Deployments trigger on push to `main` via GitHub Actions. The workflow runs `npm run build` then rsyncs `/dist` to the VPS over SSH.
+Deploys to Cloudflare Pages via GitHub Actions. Cloudflare's built-in CI has a memory cap that the TinaCMS build exceeds, so the full build runs on GitHub's runners (7GB RAM) and the output is pushed to Cloudflare Pages with Wrangler.
 
-```yaml
-# .github/workflows/deploy.yml (abbreviated)
-- run: npm ci && npm run build
-- uses: easingthemes/ssh-deploy@main
-  with:
-    source: dist/
-    target: /var/www/longlostforgotten.com/
-```
+The workflow lives at `.github/workflows/deploy.yml` and triggers on every push to `main`.
 
-Store `SSH_PRIVATE_KEY`, `SSH_HOST`, and `SSH_USER` as GitHub repository secrets.
+### GitHub repository secrets
+
+Add these in GitHub → Settings → Secrets and variables → Actions:
+
+| Secret | Description |
+|---|---|
+| `TINA_CLIENT_ID` | Tina Cloud project client ID |
+| `TINA_TOKEN` | Tina Cloud read/write token |
+| `CLOUDFLARE_API_TOKEN` | Cloudflare API token with Pages write access |
+| `CLOUDFLARE_ACCOUNT_ID` | Cloudflare account ID |
+
+### Local environment variables
+
+Set in `.env` (see `.env.example`):
+
+| Variable | Description |
+|---|---|
+| `TINA_CLIENT_ID` | Tina Cloud project client ID |
+| `TINA_TOKEN` | Tina Cloud read/write token |
+| `GITHUB_BRANCH` | Branch TinaCMS reads/writes (e.g. `main`) |
+| `TZ` | Build timezone — `America/New_York` so dates render correctly |
+
+### Disabling Cloudflare's auto-build
+
+Since GitHub Actions now handles the deploy, turn off Cloudflare's built-in CI to avoid double-builds: Cloudflare Pages → your project → Settings → Builds & deployments → set **Branch deployments** to off (or disconnect the GitHub integration).
 
 ---
 
-## TinaCMS Notes
+## TinaCMS
 
-- Run `npx tinacms dev` alongside `npm run dev` for the local CMS editor at `http://localhost:4321/admin`
-- TinaCMS config is in `tina/config.ts` — update the `branch` field and repo details before deploying
-- On the VPS, the CMS editorial interface is disabled in production (static output only); all editing happens locally or via the Tina Cloud dashboard if configured
+- **Local**: `npm run cms` starts Tina + Astro together. Admin UI at `http://localhost:4321/admin`.
+- **Production**: requires a [Tina Cloud](https://app.tina.io) project connected to this repo. Once env vars are set in Cloudflare and a fresh deploy runs, the admin is live at `/admin`.
+- **Schema**: `tina/config.ts` defines two collections:
+  - **Author** — global singleton, writes to `src/data/author.json`
+  - **Post** — writes to `src/content/posts/*.md`
+- TinaCMS commits changes directly to the configured GitHub branch, which triggers a Cloudflare Pages redeploy automatically.
 
 ---
 
 ## Notes
 
-- Minimum font size: `0.625rem` (no smaller)
 - No Tailwind — all styles are scoped per-component or in `global.css`
-- Image slots are currently gradient placeholders; replace with `<Image />` from `astro:assets` pointing to post frontmatter `image` field
-- The `DecoLayer` component (fixed SVG geometry, scanlines, noise, vignette) is inserted once in `Base.astro` and is purely decorative — fully `pointer-events: none`
+- The `AtmosphericChrome` component (deco SVG, scanlines, noise, vignette, corner marks) is purely decorative — `pointer-events: none` throughout
+- Corner SVGs sit at `z-index: 2`, below the nav (`z-index: 150`), to avoid blocking nav interaction
+- The mobile hero drops the text overlay entirely and renders a featured post card below the image instead, avoiding conflicts with any text baked into the hero image
