@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>404 — longlostforgotten.com</title>
+        <link rel="preconnect" href="https://fonts.bunny.net" />
+        <link
+            href="https://fonts.bunny.net/css?family=barlow-condensed:700,900|josefin-sans:100,300,400|share-tech-mono:400"
+            rel="stylesheet"
+        />
+        <style>
+            *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+            :root {
+                --pink: #fb66a4;
+                --pink-dim: rgba(251,102,164,0.35);
+                --pink-ghost: rgba(251,102,164,0.08);
+                --sand: #c8c88d;
+                --sand-dim: rgba(200,200,141,0.45);
+                --sand-ghost: rgba(200,200,141,0.12);
+                --teal: #4a8fa0;
+                --teal-dim: rgba(74,143,160,0.4);
+                --teal-ghost: rgba(74,143,160,0.1);
+                --ink: #251b1e;
+                --ink-dark: #1a1115;
+                --line: rgba(200,200,141,0.14);
+                --text-body: rgba(200,200,141,0.75);
+                --text-muted: rgba(200,200,141,0.3);
+                --headline: #e8f4f7;
+            }
+
+            html { min-height: 100%; }
+
+            body {
+                background: #251b1e;
+                background: radial-gradient(circle, rgba(37,27,30,1) 20%, rgba(19,99,128,1) 69%, rgba(200,200,141,1) 100%);
+                background-attachment: fixed;
+                color: var(--text-body);
+                font-family: "Josefin Sans", sans-serif;
+                min-height: 100%;
+                display: flex;
+                flex-direction: column;
+            }
+
+            body::before {
+                content: "";
+                position: fixed; inset: 0;
+                background: repeating-linear-gradient(to bottom, transparent, transparent 2px, rgba(0,0,0,0.14) 2px, rgba(0,0,0,0.14) 4px);
+                pointer-events: none; z-index: 200;
+                animation: scanDrift 14s linear infinite;
+            }
+
+            body::after {
+                content: "";
+                position: fixed; inset: 0;
+                background: radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.65) 100%);
+                pointer-events: none; z-index: 199;
+            }
+
+            #noise {
+                position: fixed; inset: 0; pointer-events: none; z-index: 198; opacity: 0.035;
+                background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+                background-size: 128px 128px;
+                animation: noiseShift 0.4s steps(1) infinite;
+            }
+
+            #deco {
+                position: fixed; inset: 0; pointer-events: none; z-index: 1;
+                animation: decoBreath 12s ease-in-out infinite;
+            }
+
+            /* NAV */
+            nav {
+                position: sticky; top: 0; z-index: 150;
+                background: rgba(37,27,30,0.88);
+                backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+                border-bottom: 1px solid var(--line);
+                display: flex; align-items: center; justify-content: space-between;
+                padding: 0 2rem; height: 52px;
+            }
+            .nav-mark {
+                display: flex; align-items: center; gap: 0.65rem;
+                font-family: "Share Tech Mono", monospace;
+                font-size: 0.75rem; letter-spacing: 0.2em;
+                color: var(--teal); text-transform: uppercase; text-decoration: none;
+            }
+            .monogram {
+                width: 28px; height: 28px;
+                border: 1px solid var(--teal-dim);
+                display: flex; align-items: center; justify-content: center;
+                font-family: "Barlow Condensed", sans-serif;
+                font-weight: 900; font-size: 0.9rem; color: var(--pink);
+                letter-spacing: 0.05em; flex-shrink: 0;
+            }
+            .nav-links { display: flex; gap: 2rem; }
+            .nav-links a {
+                font-family: "Josefin Sans", sans-serif; font-weight: 300;
+                font-size: 0.75rem; letter-spacing: 0.2em; text-transform: uppercase;
+                color: var(--sand); text-decoration: none;
+                transition: color 0.4s, filter 0.4s;
+            }
+            .nav-links a:hover { color: var(--sand); filter: drop-shadow(0 -1rem 0.5rem #a000d2); }
+
+            .signal-bar {
+                position: fixed; top: 0; left: 0; right: 0; height: 2px;
+                background: linear-gradient(to right, transparent 0%, var(--teal-dim) 20%, var(--teal) 50%, var(--teal-dim) 80%, transparent 100%);
+                z-index: 160;
+                animation: signalPulse 5s ease-in-out infinite;
+            }
+
+            /* signal bar on 404 is pink instead of teal */
+            .signal-bar--lost {
+                background: linear-gradient(to right, transparent 0%, var(--pink-dim) 20%, var(--pink) 50%, var(--pink-dim) 80%, transparent 100%);
+            }
+
+            .corner { position: fixed; z-index: 155; width: 30px; height: 30px; }
+            .corner--tl { top: 1.4rem; left: 1.4rem; }
+            .corner--tr { top: 1.4rem; right: 1.4rem; transform: scaleX(-1); }
+            .corner--bl { bottom: 1.4rem; left: 1.4rem; transform: scaleY(-1); }
+            .corner--br { bottom: 1.4rem; right: 1.4rem; transform: scale(-1,-1); }
+
+            /* 404 STAGE */
+            .stage {
+                position: relative; z-index: 10;
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                text-align: center;
+                padding: 4rem 2rem;
+                gap: 0;
+            }
+
+            .error-code {
+                font-family: "Barlow Condensed", sans-serif;
+                font-weight: 900;
+                font-size: clamp(8rem, 22vw, 18rem);
+                color: rgba(251,102,164,0.06);
+                letter-spacing: -0.02em;
+                line-height: 1;
+                user-select: none;
+                pointer-events: none;
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                white-space: nowrap;
+                /* glitch flicker */
+                animation: glitchFlicker 6s steps(1) infinite;
+            }
+
+            .stage-inner {
+                position: relative;
+                z-index: 2;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 1.25rem;
+                max-width: 480px;
+            }
+
+            .status-label {
+                font-family: "Share Tech Mono", monospace;
+                font-size: 0.625rem; letter-spacing: 0.35em;
+                color: var(--pink);
+                text-transform: uppercase;
+                animation: signalPulse 3s ease-in-out infinite;
+            }
+
+            .lost-title {
+                font-family: "Barlow Condensed", sans-serif;
+                font-weight: 900;
+                font-size: clamp(2rem, 5vw, 3.2rem);
+                color: var(--headline);
+                text-transform: uppercase;
+                letter-spacing: 0.03em;
+                line-height: 0.95;
+            }
+            .lost-title span { color: var(--pink); }
+
+            .lost-body {
+                font-family: "Josefin Sans", sans-serif;
+                font-weight: 300; font-size: 0.95rem;
+                color: var(--text-body); line-height: 1.8;
+                letter-spacing: 0.02em;
+            }
+
+            /* divider */
+            .mini-divider {
+                display: flex; align-items: center; gap: 0.6rem;
+                width: 100%;
+            }
+            .mini-divider::before, .mini-divider::after {
+                content: ""; flex: 1; height: 1px; background: var(--line);
+            }
+            .diamond { width: 4px; height: 4px; background: var(--sand-dim); transform: rotate(45deg); flex-shrink: 0; }
+
+            .nav-options {
+                display: flex; flex-direction: column; align-items: center; gap: 0.6rem;
+                width: 100%;
+            }
+
+            .nav-option {
+                font-family: "Share Tech Mono", monospace;
+                font-size: 0.625rem; letter-spacing: 0.2em;
+                color: var(--teal); text-transform: uppercase;
+                text-decoration: none;
+                transition: color 0.4s, filter 0.4s;
+            }
+            .nav-option:hover {
+                color: var(--sand);
+                filter: drop-shadow(0 -0.5rem 0.4rem #a000d2);
+            }
+            .nav-option::before { content: "→ "; }
+
+            /* FOOTER */
+            footer {
+                position: relative; z-index: 10;
+                border-top: 1px solid var(--line);
+                padding: 1.5rem 2rem;
+                max-width: 640px; width: 100%; margin: 0 auto;
+                display: flex; align-items: center; justify-content: space-between;
+            }
+            .footer-mark { font-family: "Share Tech Mono", monospace; font-size: 0.625rem; letter-spacing: 0.2em; color: var(--sand); text-transform: lowercase; }
+            .footer-signal {
+                font-family: "Share Tech Mono", monospace; font-size: 0.625rem; letter-spacing: 0.18em;
+                color: var(--pink); text-transform: uppercase;
+                animation: signalPulse 3s ease-in-out infinite;
+            }
+
+            /* ANIMATIONS */
+            @keyframes scanDrift { from { background-position: 0 0; } to { background-position: 0 100px; } }
+            @keyframes noiseShift {
+                0%   { background-position: 0 0; }
+                25%  { background-position: 16px 8px; }
+                50%  { background-position: 8px 16px; }
+                75%  { background-position: 24px 4px; }
+                100% { background-position: 0 0; }
+            }
+            @keyframes signalPulse { 0%, 100% { opacity: 0.25; } 50% { opacity: 1; } }
+            @keyframes decoBreath { 0%, 100% { opacity: 0.22; } 50% { opacity: 0.13; } }
+            @keyframes glitchFlicker {
+                0%, 89%, 91%, 93%, 100% { opacity: 1; transform: translate(-50%, -50%); }
+                90%  { opacity: 0.4; transform: translate(-50.4%, -50%); }
+                92%  { opacity: 0.7; transform: translate(-49.8%, -50.1%); }
+            }
+        </style>
+    </head>
+    <body>
+        <div id="noise"></div>
+
+        <svg id="deco" viewBox="0 0 1440 900" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" aria-hidden="true" style="position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:1;">
+            <rect x="36" y="36" width="1368" height="828" fill="none" stroke="#c8c88d" stroke-width="0.6" opacity="0.5"/>
+            <rect x="48" y="48" width="1344" height="804" fill="none" stroke="#c8c88d" stroke-width="0.3" opacity="0.25"/>
+            <g opacity="0.18" stroke="#c8c88d" stroke-width="0.4">
+                <line x1="720" y1="450" x2="720" y2="36"/><line x1="720" y1="450" x2="720" y2="864"/>
+                <line x1="720" y1="450" x2="36" y2="450"/><line x1="720" y1="450" x2="1404" y2="450"/>
+                <line x1="720" y1="450" x2="180" y2="90"/><line x1="720" y1="450" x2="1260" y2="90"/>
+                <line x1="720" y1="450" x2="180" y2="810"/><line x1="720" y1="450" x2="1260" y2="810"/>
+            </g>
+            <g transform="translate(720,450)" opacity="0.45">
+                <rect x="-55" y="-55" width="110" height="110" fill="none" stroke="#c8c88d" stroke-width="0.5" transform="rotate(45)"/>
+                <rect x="-38" y="-38" width="76" height="76" fill="none" stroke="#c8c88d" stroke-width="0.3" transform="rotate(45)"/>
+                <rect x="-20" y="-20" width="40" height="40" fill="none" stroke="#4a8fa0" stroke-width="0.4" transform="rotate(45)" opacity="0.7"/>
+                <line x1="-55" y1="0" x2="55" y2="0" stroke="#c8c88d" stroke-width="0.3" opacity="0.4"/>
+                <line x1="0" y1="-55" x2="0" y2="55" stroke="#c8c88d" stroke-width="0.3" opacity="0.4"/>
+            </g>
+            <g stroke="#c8c88d" stroke-width="0.6" fill="none" opacity="0.55">
+                <polyline points="76,76 76,136 136,136"/><polyline points="84,84 84,128 128,128"/>
+                <polyline points="1364,76 1364,136 1304,136"/><polyline points="1356,84 1356,128 1312,128"/>
+                <polyline points="76,824 76,764 136,764"/><polyline points="84,816 84,772 128,772"/>
+                <polyline points="1364,824 1364,764 1304,764"/><polyline points="1356,816 1356,772 1312,772"/>
+            </g>
+            <ellipse cx="720" cy="450" rx="300" ry="185" fill="none" stroke="rgba(251,102,164,0.12)" stroke-width="0.6"/>
+        </svg>
+
+        <div class="signal-bar signal-bar--lost" aria-hidden="true"></div>
+
+        <svg class="corner corner--tl" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <polyline points="3,27 3,3 27,3" stroke="#fb66a4" stroke-width="1.2"/>
+            <polyline points="7,23 7,7 23,7" stroke="#fb66a4" stroke-width="0.4" opacity="0.5"/>
+        </svg>
+        <svg class="corner corner--tr" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <polyline points="3,27 3,3 27,3" stroke="#fb66a4" stroke-width="1.2"/>
+            <polyline points="7,23 7,7 23,7" stroke="#fb66a4" stroke-width="0.4" opacity="0.5"/>
+        </svg>
+        <svg class="corner corner--bl" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <polyline points="3,27 3,3 27,3" stroke="#fb66a4" stroke-width="1.2"/>
+            <polyline points="7,23 7,7 23,7" stroke="#fb66a4" stroke-width="0.4" opacity="0.5"/>
+        </svg>
+        <svg class="corner corner--br" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <polyline points="3,27 3,3 27,3" stroke="#fb66a4" stroke-width="1.2"/>
+            <polyline points="7,23 7,7 23,7" stroke="#fb66a4" stroke-width="0.4" opacity="0.5"/>
+        </svg>
+
+        <nav>
+            <a href="index.html" class="nav-mark">
+                <div class="monogram">LLF</div>
+                longlostforgotten
+            </a>
+            <div class="nav-links">
+                <a href="index.html">Home</a>
+                <a href="archive.html">Archive</a>
+                <a href="about.html">About</a>
+            </div>
+        </nav>
+
+        <div class="stage">
+            <div class="error-code" aria-hidden="true">404</div>
+
+            <div class="stage-inner">
+                <span class="status-label">— signal lost —</span>
+
+                <h1 class="lost-title">This page<br>doesn't <span>exist</span><br>anymore</h1>
+
+                <p class="lost-body">
+                    Or it never did. The address you followed led somewhere the transmission didn't reach. It happens.
+                </p>
+
+                <div class="mini-divider">
+                    <div class="diamond"></div>
+                    <div class="diamond"></div>
+                    <div class="diamond"></div>
+                </div>
+
+                <nav class="nav-options" aria-label="Recovery options">
+                    <a href="index.html" class="nav-option">return to home</a>
+                    <a href="archive.html" class="nav-option">browse the archive</a>
+                </nav>
+            </div>
+        </div>
+
+        <footer>
+            <span class="footer-mark">&copy; 2014-2026 longlostforgotten.com</span>
+            <span class="footer-signal">signal lost · stand by</span>
+        </footer>
+    </body>
+</html>
