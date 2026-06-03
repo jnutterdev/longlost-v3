@@ -1,0 +1,138 @@
+import { readFileSync, writeFileSync } from 'fs';
+import { execSync } from 'child_process';
+
+const SITE_URL = process.env.SITE_URL || 'https://longlostforgotten.com';
+const BLUESKY_HANDLE = process.env.BLUESKY_HANDLE;
+const BLUESKY_APP_PASSWORD = process.env.BLUESKY_APP_PASSWORD;
+const MASTODON_INSTANCE = process.env.MASTODON_INSTANCE;
+const MASTODON_ACCESS_TOKEN = process.env.MASTODON_ACCESS_TOKEN;
+
+function getNewPostFiles() {
+  const output = execSync(
+    'git diff --name-only --diff-filter=A HEAD~1 HEAD -- src/content/posts/',
+    { encoding: 'utf8' }
+  );
+  return output.trim().split('\n').filter(f => f.endsWith('.md'));
+}
+
+function parseFrontmatter(content) {
+  const match = content.match(/^---\n([\s\S]*?)\n---/);
+  if (!match) return {};
+  const result = {};
+  for (const line of match[1].split('\n')) {
+    const colonIdx = line.indexOf(':');
+    if (colonIdx === -1) continue;
+    const key = line.slice(0, colonIdx).trim();
+    const value = line.slice(colonIdx + 1).trim().replace(/^["']|["']$/g, '');
+    if (key) result[key] = value;
+  }
+  return result;
+}
+
+function updateFrontmatterField(filePath, key, value) {
+  let content = readFileSync(filePath, 'utf8');
+  const closingIdx = content.indexOf('\n---', 4);
+  if (closingIdx === -1) return;
+  const before = content.slice(0, closingIdx);
+  const after = content.slice(closingIdx);
+  const updated = before.includes(`${key}:`)
+    ? before.replace(new RegExp(`^${key}:.*$`, 'm'), `${key}: ${value}`)
+    : before + `\n${key}: ${value}`;
+  writeFileSync(filePath, updated + after);
+}
+
+async function postToBluesky(text, linkUrl) {
+  const sessionRes = await fetch('https://bsky.social/xrpc/com.atproto.server.createSession', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ identifier: BLUESKY_HANDLE, password: BLUESKY_APP_PASSWORD }),
+  });
+  if (!sessionRes.ok) throw new Error(`Bluesky auth failed: ${await sessionRes.text()}`);
+  const { accessJwt, did } = await sessionRes.json();
+
+  const encoder = new TextEncoder();
+  const byteStart = encoder.encode(text.slice(0, text.lastIndexOf(linkUrl))).length;
+  const byteEnd = byteStart + encoder.encode(linkUrl).length;
+
+  const postRes = await fetch('https://bsky.social/xrpc/com.atproto.repo.createRecord', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessJwt}` },
+    body: JSON.stringify({
+      repo: did,
+      collection: 'app.bsky.feed.post',
+      record: {
+        $type: 'app.bsky.feed.post',
+        text,
+        facets: [{
+          index: { byteStart, byteEnd },
+          features: [{ $type: 'app.bsky.richtext.facet#link', uri: linkUrl }],
+        }],
+        createdAt: new Date().toISOString(),
+      },
+    }),
+  });
+  if (!postRes.ok) throw new Error(`Bluesky post failed: ${await postRes.text()}`);
+  const { uri } = await postRes.json();
+  const recordKey = uri.split('/').pop();
+  return `https://bsky.app/profile/${BLUESKY_HANDLE}/post/${recordKey}`;
+}
+
+async function postToMastodon(text) {
+  const res = await fetch(`https://${MASTODON_INSTANCE}/api/v1/statuses`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${MASTODON_ACCESS_TOKEN}` },
+    body: JSON.stringify({ status: text, visibility: 'public' }),
+  });
+  if (!res.ok) throw new Error(`Mastodon post failed: ${await res.text()}`);
+  const { url } = await res.json();
+  return url;
+}
+
+async function main() {
+  const newFiles = getNewPostFiles();
+  if (newFiles.length === 0) { console.log('No new posts.'); return; }
+
+  for (const filePath of newFiles) {
+    const fm = parseFrontmatter(readFileSync(filePath, 'utf8'));
+    if (fm.draft === 'true') { console.log(`Skipping draft: ${filePath}`); continue; }
+
+    const slug = filePath.replace('src/content/posts/', '').replace('.md', '');
+    const postUrl = `${SITE_URL}/posts/${slug}`;
+    const text = `${fm.title}\n\n${fm.excerpt}\n\n${postUrl}`;
+
+    console.log(`Announcing: ${fm.title}`);
+    let discussionUrl = null;
+
+    if (BLUESKY_HANDLE && BLUESKY_APP_PASSWORD) {
+      try {
+        discussionUrl = await postToBluesky(text, postUrl);
+        console.log(`Bluesky: ${discussionUrl}`);
+      } catch (err) { console.error('Bluesky error:', err.message); }
+    }
+
+    if (MASTODON_INSTANCE && MASTODON_ACCESS_TOKEN) {
+      try {
+        const mastodonUrl = await postToMastodon(text);
+        console.log(`Mastodon: ${mastodonUrl}`);
+        if (!discussionUrl) discussionUrl = mastodonUrl;
+      } catch (err) { console.error('Mastodon error:', err.message); }
+    }
+
+    if (discussionUrl) {
+      updateFrontmatterField(filePath, 'discussionUrl', discussionUrl);
+    }
+  }
+
+  execSync('git config user.name "github-actions[bot]"');
+  execSync('git config user.email "github-actions[bot]@users.noreply.github.com"');
+  execSync('git add src/content/posts/');
+  try {
+    execSync('git diff --staged --quiet');
+    console.log('Nothing to commit.');
+  } catch {
+    execSync('git commit -m "chore: add discussion URLs"');
+    execSync('git push');
+  }
+}
+
+main().catch(err => { console.error(err); process.exit(1); });
