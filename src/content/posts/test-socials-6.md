@@ -5,6 +5,7 @@ tag: fragment
 readTime: 1 min
 excerpt: test socials 6
 image: /dread-and-discomfort.jpg
+discussionUrl: https://bsky.app/profile/longlostforgotten.com/post/3mnejdvhyki2b
 ---
 
 test socials 6
