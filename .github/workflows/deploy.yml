@@ -40,12 +40,22 @@ jobs:
           restore-keys: ${{ runner.os }}-tina-
 
       - name: Build
-        run: npm run build
         env:
           TINA_CLIENT_ID: ${{ secrets.TINA_CLIENT_ID }}
           TINA_TOKEN: ${{ secrets.TINA_TOKEN }}
           GITHUB_BRANCH: main
           TZ: America/New_York
+        run: |
+          for attempt in 1 2 3; do
+            npm run build && break
+            if [ $attempt -lt 3 ]; then
+              echo "Build attempt $attempt failed, waiting 30s for Tina Cloud to index..."
+              sleep 30
+            else
+              echo "Build failed after 3 attempts"
+              exit 1
+            fi
+          done
 
       - name: Deploy
         uses: cloudflare/wrangler-action@v3
