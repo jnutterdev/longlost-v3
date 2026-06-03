@@ -1,0 +1,23 @@
+{
+  "name": "John Forgotten",
+  "handle": "longlostforgotten",
+  "photo": {
+    "src": "/john_deus_ex.png",
+    "alt": "picture of author john, sarif industries"
+  },
+  "bio": [
+    "I write things here. Essays mostly, takes sometimes, fragments when I can't finish a thought. No particular subject. I'm interested in cities at night, the way memory distorts things, music that sounds like weather, and objects that outlast their context.",
+    "Based in Atlanta. Developer by trade. Collector of things that don't fit anywhere specific.",
+    "This site has been running since 2014 under various names and intentions. The current version is the most honest version — which is to say, it doesn't pretend to be anything other than a place I write."
+  ],
+  "links": [
+    {
+      "label": "longlostforgotten on bluesky",
+      "url": "https://bsky.app/profile/longlostforgotten.com"
+    },
+    {
+      "label": "longlostforgotten on instagram",
+      "url": "https://www.instagram.com/lnglostfrgttn/"
+    }
+  ]
+}

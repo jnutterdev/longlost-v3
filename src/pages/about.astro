@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import DiamondDivider from '../components/DiamondDivider.astro';
+import author from '../data/author.json';
 ---
 
 <BaseLayout title="About — longlostforgotten.com">
@@ -13,36 +14,25 @@ import DiamondDivider from '../components/DiamondDivider.astro';
 
   <div class="about">
     <div class="about-layout">
-      <div class="photo-slot"></div>
+      {author.photo?.src
+        ? <img class="photo" src={author.photo.src} alt={author.photo.alt ?? author.name} />
+        : <div class="photo-slot"></div>
+      }
 
       <div class="bio">
-        <span class="bio-handle">longlostforgotten</span>
-        <div class="bio-name">Your Name Here</div>
+        <span class="bio-handle">{author.handle}</span>
+        <div class="bio-name">{author.name}</div>
 
-        <p>
-          I write things here. Essays mostly, takes sometimes, fragments when I can't finish a thought.
-          No particular subject. I'm interested in cities at night, the way memory distorts things,
-          music that sounds like weather, and objects that outlast their context.
-        </p>
-
-        <p>
-          Based in Atlanta. Developer by trade. Collector of things that don't fit anywhere specific.
-        </p>
-
-        <p>
-          This site has been running since 2014 under various names and intentions. The current version
-          is the most honest version — which is to say, it doesn't pretend to be anything other than
-          a place I write.
-        </p>
+        {author.bio.map(paragraph => <p>{paragraph}</p>)}
 
         <hr class="bio-rule" />
 
         <div>
           <span class="bio-elsewhere">— elsewhere</span>
           <div class="bio-links">
-            <a href="#">longlostforgotten on bandcamp</a>
-            <a href="#">longlostforgotten on letterboxd</a>
-            <a href="#">longlostforgotten on last.fm</a>
+            {author.links.map(link => (
+              <a href={link.url}>{link.label}</a>
+            ))}
           </div>
         </div>
       </div>
@@ -93,6 +83,14 @@ import DiamondDivider from '../components/DiamondDivider.astro';
     grid-template-columns: 160px 1fr;
     gap: 2.5rem;
     align-items: start;
+  }
+
+  .photo {
+    width: 160px;
+    aspect-ratio: 3/4;
+    object-fit: cover;
+    border: 1px solid var(--line);
+    flex-shrink: 0;
   }
 
   .photo-slot {

@@ -17,6 +17,60 @@ export default defineConfig({
   schema: {
     collections: [
       {
+        name: 'author',
+        label: 'Author',
+        path: 'src/data',
+        format: 'json',
+        ui: {
+          allowedActions: { create: false, delete: false },
+          global: true,
+        },
+        match: { include: 'author' },
+        fields: [
+          {
+            type: 'string',
+            name: 'name',
+            label: 'Name',
+            required: true,
+          },
+          {
+            type: 'string',
+            name: 'handle',
+            label: 'Handle',
+            required: true,
+          },
+          {
+            type: 'object',
+            name: 'photo',
+            label: 'Photo',
+            fields: [
+              { type: 'image', name: 'src', label: 'Image' },
+              { type: 'string', name: 'alt', label: 'Alt Text' },
+            ],
+          },
+          {
+            type: 'string',
+            name: 'bio',
+            label: 'Bio',
+            list: true,
+            ui: { component: 'textarea' },
+          },
+          {
+            type: 'object',
+            name: 'links',
+            label: 'Links',
+            list: true,
+            ui: {
+              itemProps: (item: { label?: string }) => ({ label: item?.label }),
+            },
+            fields: [
+              { type: 'string', name: 'label', label: 'Label', required: true },
+              { type: 'string', name: 'url', label: 'URL', required: true },
+            ],
+          },
+        ],
+      },
+      {
         name: 'post',
         label: 'Posts',
         path: 'src/content/posts',

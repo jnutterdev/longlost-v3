@@ -1,0 +1,28 @@
+fragment AuthorParts on Author {
+  __typename
+  name
+  handle
+  photo {
+    __typename
+    src
+    alt
+  }
+  bio
+  links {
+    __typename
+    label
+    url
+  }
+}
+
+fragment PostParts on Post {
+  __typename
+  title
+  date
+  tag
+  readTime
+  excerpt
+  image
+  featured
+  body
+}

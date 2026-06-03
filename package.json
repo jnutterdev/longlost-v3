@@ -6,10 +6,16 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "cms": "npx tinacms dev -c \"astro dev\""
+    "cms": "tinacms dev -c \"astro dev\""
   },
   "dependencies": {
     "astro": "^4.16.0",
     "tinacms": "^2.0.0"
+  },
+  "devDependencies": {
+    "@tinacms/cli": "latest"
+  },
+  "engines": {
+    "node": ">=24.0.0"
   }
 }
