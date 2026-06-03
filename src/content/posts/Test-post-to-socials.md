@@ -5,6 +5,7 @@ tag: fragment
 readTime: 1 min
 excerpt: test post to mastodon and bluesky
 image: /dread-and-discomfort.png
+discussionUrl: https://bsky.app/profile/longlostforgotten.com/post/3mnefnlk3na2z
 ---
 
 test post to mastodon and bluesky
