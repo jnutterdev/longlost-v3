@@ -25,5 +25,6 @@ fragment PostParts on Post {
   image
   featured
   draft
+  discussionUrl
   body
 }

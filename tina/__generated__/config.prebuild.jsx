@@ -125,6 +125,11 @@ var config_default = defineConfig({
             label: "Draft"
           },
           {
+            type: "string",
+            name: "discussionUrl",
+            label: "Discussion URL (Bluesky / Mastodon thread)"
+          },
+          {
             type: "rich-text",
             name: "body",
             label: "Body",

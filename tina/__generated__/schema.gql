@@ -163,6 +163,7 @@ type Post implements Node & Document {
   image: String
   featured: Boolean
   draft: Boolean
+  discussionUrl: String
   body: JSON
   id: ID!
   _sys: SystemInfo!
@@ -197,6 +198,7 @@ input PostFilter {
   image: ImageFilter
   featured: BooleanFilter
   draft: BooleanFilter
+  discussionUrl: StringFilter
   body: RichTextFilter
 }
 
@@ -261,6 +263,7 @@ input PostMutation {
   image: String
   featured: Boolean
   draft: Boolean
+  discussionUrl: String
   body: JSON
 }
 
