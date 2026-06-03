@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- background -->
+  <rect width="32" height="32" fill="#251b1e"/>
+  <!-- teal border, matching monogram -->
+  <rect x="1.5" y="1.5" width="29" height="29" fill="none" stroke="#4a8fa0" stroke-width="0.8" opacity="0.5"/>
+  <!-- LLF, condensed bold, pink -->
+  <text
+    x="15"
+    y="22"
+    text-anchor="middle"
+    font-family="'Arial Narrow', Arial, sans-serif"
+    font-weight="900"
+    font-size="13"
+    fill="#fb66a4"
+    letter-spacing="1"
+  >LLF</text>
+</svg>
