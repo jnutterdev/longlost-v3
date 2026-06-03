@@ -41,7 +41,19 @@ function updateFrontmatterField(filePath, key, value) {
   writeFileSync(filePath, updated + after);
 }
 
-async function postToBluesky(text, linkUrl) {
+async function fetchImage(imageUrl) {
+  try {
+    const res = await fetch(imageUrl);
+    if (!res.ok) return null;
+    const buffer = await res.arrayBuffer();
+    const contentType = res.headers.get('content-type') || 'image/jpeg';
+    return { buffer, contentType };
+  } catch {
+    return null;
+  }
+}
+
+async function postToBluesky(text, linkUrl, image) {
   const sessionRes = await fetch('https://bsky.social/xrpc/com.atproto.server.createSession', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -54,22 +66,37 @@ async function postToBluesky(text, linkUrl) {
   const byteStart = encoder.encode(text.slice(0, text.lastIndexOf(linkUrl))).length;
   const byteEnd = byteStart + encoder.encode(linkUrl).length;
 
+  const record = {
+    $type: 'app.bsky.feed.post',
+    text,
+    facets: [{
+      index: { byteStart, byteEnd },
+      features: [{ $type: 'app.bsky.richtext.facet#link', uri: linkUrl }],
+    }],
+    createdAt: new Date().toISOString(),
+  };
+
+  if (image) {
+    const blobRes = await fetch('https://bsky.social/xrpc/com.atproto.repo.uploadBlob', {
+      method: 'POST',
+      headers: { 'Content-Type': image.contentType, Authorization: `Bearer ${accessJwt}` },
+      body: image.buffer,
+    });
+    if (blobRes.ok) {
+      const { blob } = await blobRes.json();
+      record.embed = {
+        $type: 'app.bsky.embed.images',
+        images: [{ image: blob, alt: text.split('\n')[0] }],
+      };
+    } else {
+      console.warn('Bluesky image upload failed, posting without image.');
+    }
+  }
+
   const postRes = await fetch('https://bsky.social/xrpc/com.atproto.repo.createRecord', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessJwt}` },
-    body: JSON.stringify({
-      repo: did,
-      collection: 'app.bsky.feed.post',
-      record: {
-        $type: 'app.bsky.feed.post',
-        text,
-        facets: [{
-          index: { byteStart, byteEnd },
-          features: [{ $type: 'app.bsky.richtext.facet#link', uri: linkUrl }],
-        }],
-        createdAt: new Date().toISOString(),
-      },
-    }),
+    body: JSON.stringify({ repo: did, collection: 'app.bsky.feed.post', record }),
   });
   if (!postRes.ok) throw new Error(`Bluesky post failed: ${await postRes.text()}`);
   const { uri } = await postRes.json();
@@ -77,11 +104,34 @@ async function postToBluesky(text, linkUrl) {
   return `https://bsky.app/profile/${BLUESKY_HANDLE}/post/${recordKey}`;
 }
 
-async function postToMastodon(text) {
+async function postToMastodon(text, image) {
+  let mediaIds = [];
+
+  if (image) {
+    const formData = new FormData();
+    formData.append('file', new Blob([image.buffer], { type: image.contentType }), 'image.jpg');
+    formData.append('description', text.split('\n')[0]);
+
+    const uploadRes = await fetch(`https://${MASTODON_INSTANCE}/api/v1/media`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${MASTODON_ACCESS_TOKEN}` },
+      body: formData,
+    });
+    if (uploadRes.ok) {
+      const { id } = await uploadRes.json();
+      mediaIds = [id];
+    } else {
+      console.warn('Mastodon image upload failed, posting without image.');
+    }
+  }
+
+  const body = { status: text, visibility: 'public' };
+  if (mediaIds.length) body.media_ids = mediaIds;
+
   const res = await fetch(`https://${MASTODON_INSTANCE}/api/v1/statuses`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${MASTODON_ACCESS_TOKEN}` },
-    body: JSON.stringify({ status: text, visibility: 'public' }),
+    body: JSON.stringify(body),
   });
   if (!res.ok) throw new Error(`Mastodon post failed: ${await res.text()}`);
   const { url } = await res.json();
@@ -100,19 +150,22 @@ async function main() {
     const postUrl = `${SITE_URL}/posts/${slug}`;
     const text = `${fm.title}\n\n${fm.excerpt}\n\n${postUrl}`;
 
+    const image = fm.image ? await fetchImage(`${SITE_URL}${fm.image}`) : null;
+    if (fm.image && !image) console.warn('Could not fetch post image, posting without it.');
+
     console.log(`Announcing: ${fm.title}`);
     let discussionUrl = null;
 
     if (BLUESKY_HANDLE && BLUESKY_APP_PASSWORD) {
       try {
-        discussionUrl = await postToBluesky(text, postUrl);
+        discussionUrl = await postToBluesky(text, postUrl, image);
         console.log(`Bluesky: ${discussionUrl}`);
       } catch (err) { console.error('Bluesky error:', err.message); }
     }
 
     if (MASTODON_INSTANCE && MASTODON_ACCESS_TOKEN) {
       try {
-        const mastodonUrl = await postToMastodon(text);
+        const mastodonUrl = await postToMastodon(text, image);
         console.log(`Mastodon: ${mastodonUrl}`);
         if (!discussionUrl) discussionUrl = mastodonUrl;
       } catch (err) { console.error('Mastodon error:', err.message); }

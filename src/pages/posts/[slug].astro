@@ -25,7 +25,12 @@ function fmt(d: Date) {
 }
 ---
 
-<BaseLayout title={`${post.data.title} — longlostforgotten.com`} description={post.data.excerpt}>
+<BaseLayout
+  title={`${post.data.title} — longlostforgotten.com`}
+  description={post.data.excerpt}
+  image={post.data.image}
+  type="article"
+>
   <div class="post-wrap">
     <header class="post-header">
       <div class="post-header-meta">

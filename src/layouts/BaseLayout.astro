@@ -7,9 +7,23 @@ import '../styles/global.css';
 interface Props {
   title: string;
   description?: string;
+  image?: string;       // absolute URL or site-relative path
+  type?: 'website' | 'article';
 }
 
-const { title, description } = Astro.props;
+const {
+  title,
+  description = 'longlostforgotten.com — essays, takes, notes, and fragments.',
+  image,
+  type = 'website',
+} = Astro.props;
+
+const siteUrl = 'https://longlostforgotten.com';
+const canonicalUrl = new URL(Astro.url.pathname, siteUrl).href;
+const fallbackImage = `${siteUrl}/images/longlost_neon_night.png`;
+const ogImage = image
+  ? (image.startsWith('http') ? image : `${siteUrl}${image}`)
+  : fallbackImage;
 ---
 
 <!DOCTYPE html>
@@ -18,8 +32,25 @@ const { title, description } = Astro.props;
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{title}</title>
-    {description && <meta name="description" content={description} />}
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalUrl} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <!-- Open Graph -->
+    <meta property="og:site_name" content="longlostforgotten" />
+    <meta property="og:type" content={type} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:locale" content="en_US" />
+
+    <!-- Twitter / X -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+
     <link rel="preconnect" href="https://fonts.bunny.net" />
     <link
       href="https://fonts.bunny.net/css?family=barlow-condensed:700,900|josefin-sans:100,300,400|share-tech-mono:400"
