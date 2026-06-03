@@ -1,22 +1,25 @@
 name: Announce
 
 on:
-  push:
+  workflow_run:
+    workflows: [Deploy]
+    types: [completed]
     branches: [main]
-    paths:
-      - src/content/posts/**.md
 
 jobs:
   announce:
     runs-on: ubuntu-latest
-    # don't re-run when this workflow commits the discussionUrl back
-    if: github.actor != 'github-actions[bot]'
+    # only run after a successful deploy, and not when the bot commits discussionUrl back
+    if: |
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.actor.login != 'github-actions[bot]'
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 2
+          ref: ${{ github.event.workflow_run.head_sha }}
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: actions/setup-node@v4
