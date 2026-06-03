@@ -96,7 +96,7 @@ async function main() {
     const fm = parseFrontmatter(readFileSync(filePath, 'utf8'));
     if (fm.draft === 'true') { console.log(`Skipping draft: ${filePath}`); continue; }
 
-    const slug = filePath.replace('src/content/posts/', '').replace('.md', '');
+    const slug = filePath.replace('src/content/posts/', '').replace('.md', '').toLowerCase();
     const postUrl = `${SITE_URL}/posts/${slug}`;
     const text = `${fm.title}\n\n${fm.excerpt}\n\n${postUrl}`;
 

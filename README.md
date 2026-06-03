@@ -63,6 +63,12 @@ longlost-v3/
 │       └── global.css               # CSS tokens, reset, body, keyframe animations
 ├── tina/
 │   └── config.ts                    # TinaCMS schema (Author + Post collections)
+├── scripts/
+│   └── announce.mjs                 # posts to Bluesky/Mastodon on new article publish
+├── .github/
+│   └── workflows/
+│       ├── deploy.yml               # build + deploy to Cloudflare on push to main
+│       └── announce.yml             # announce new posts to social platforms
 ├── .env.example
 ├── .nvmrc
 ├── astro.config.mjs
@@ -83,18 +89,20 @@ Posts live in `src/content/posts/` as Markdown files managed via TinaCMS.
 ---
 title: "Post Title Here"
 date: 2026-06-01
-tag: essay           # essay | take | note | review | fragment
+tag: essay              # essay | take | note | review | fragment
 readTime: 8 min read
 excerpt: "Shown in the feed, archive, and post header."
-image: /images/post-image.jpg   # optional — displayed inside the post only, not on the hero
-featured: true                   # optional — pins to homepage hero
-draft: true                      # optional — hides from all public pages and URLs
+image: /images/post-image.jpg     # optional — displayed inside the post only, not on the hero
+featured: true                     # optional — pins to homepage hero
+draft: true                        # optional — hides from all public pages and URLs
+discussionUrl: https://bsky.app/…  # optional — auto-populated by announce workflow
 ---
 ```
 
 - The homepage hero uses the post marked `featured: true`, falling back to the most recent published post.
 - Posts with `draft: true` are excluded from the feed, archive, and have no generated URL.
 - Post images only appear inside the post itself — the homepage hero always uses its own fixed background image.
+- `discussionUrl` is set automatically by the announce workflow after publishing. When present, a `— discuss this post →` link appears at the bottom of the post page.
 
 ### Author
 
@@ -154,6 +162,10 @@ Add these in GitHub → Settings → Secrets and variables → Actions:
 | `TINA_TOKEN` | Tina Cloud read/write token |
 | `CLOUDFLARE_API_TOKEN` | Cloudflare API token with Pages write access |
 | `CLOUDFLARE_ACCOUNT_ID` | Cloudflare account ID |
+| `BLUESKY_HANDLE` | Bluesky handle, e.g. `longlostforgotten.com` |
+| `BLUESKY_APP_PASSWORD` | Bluesky → Settings → App Passwords |
+| `MASTODON_INSTANCE` | Mastodon instance domain, e.g. `mastodon.social` _(optional)_ |
+| `MASTODON_ACCESS_TOKEN` | Mastodon → Settings → Development → New Application _(optional)_ |
 
 ### Local environment variables
 
@@ -168,7 +180,18 @@ Set in `.env` (see `.env.example`):
 
 ### Disabling Cloudflare's auto-build
 
-Since GitHub Actions now handles the deploy, turn off Cloudflare's built-in CI to avoid double-builds: Cloudflare Pages → your project → Settings → Builds & deployments → set **Branch deployments** to off (or disconnect the GitHub integration).
+Since GitHub Actions now handles the deploy, turn off Cloudflare's built-in CI to avoid double-builds: Cloudflare Pages → your project → Settings → Builds & deployments → clear the Build and Deploy command fields.
+
+### Announce workflow
+
+`.github/workflows/announce.yml` triggers on pushes to `main` that touch `src/content/posts/`. It:
+
+1. Detects newly added post files (skips edits to existing posts and drafts)
+2. Posts to Bluesky and optionally Mastodon with the title, excerpt, and URL
+3. Writes the resulting thread URL back to the post's `discussionUrl` frontmatter field
+4. Commits and pushes, which triggers one final deploy to make the discussion link live
+
+Mastodon is fully optional — if `MASTODON_INSTANCE` and `MASTODON_ACCESS_TOKEN` are not set, that step is silently skipped.
 
 ---
 
