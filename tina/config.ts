@@ -110,10 +110,18 @@ export default defineConfig({
             required: true,
           },
           {
-            type: "image",
+            type: "object",
             name: "image",
             label: "Image",
-            description: "Recommended under 2MB. JPEG or PNG. Images over 2MB will be excluded from Bluesky posts.",
+            fields: [
+              {
+                type: "image",
+                name: "src",
+                label: "File",
+                description: "Recommended under 2MB. JPEG or PNG. Images over 2MB will be excluded from Bluesky posts.",
+              },
+              { type: "string", name: "alt", label: "Alt Text" },
+            ],
           },
           {
             type: "boolean",

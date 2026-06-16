@@ -28,7 +28,7 @@ function fmt(d: Date) {
 <BaseLayout
   title={`${post.data.title} — longlostforgotten.com`}
   description={post.data.excerpt}
-  image={post.data.image}
+  image={post.data.image?.src}
   type="article"
 >
   <div class="post-wrap">
@@ -43,9 +43,9 @@ function fmt(d: Date) {
       <p class="post-deck">{post.data.excerpt}</p>
     </header>
 
-    {post.data.image && (
+    {post.data.image?.src && (
       <div class="post-image">
-        <img src={post.data.image} alt={post.data.title} />
+        <img src={post.data.image.src} alt={post.data.image.alt || post.data.title} />
       </div>
     )}
 

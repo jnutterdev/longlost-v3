@@ -19,12 +19,26 @@ function parseFrontmatter(content) {
   const match = content.match(/^---\n([\s\S]*?)\n---/);
   if (!match) return {};
   const result = {};
+  let currentKey = null;
   for (const line of match[1].split('\n')) {
-    const colonIdx = line.indexOf(':');
-    if (colonIdx === -1) continue;
-    const key = line.slice(0, colonIdx).trim();
-    const value = line.slice(colonIdx + 1).trim().replace(/^["']|["']$/g, '');
-    if (key) result[key] = value;
+    if (/^\s+\S/.test(line) && currentKey) {
+      // indented line — nested value under currentKey
+      if (typeof result[currentKey] !== 'object' || result[currentKey] === null) {
+        result[currentKey] = {};
+      }
+      const colonIdx = line.trim().indexOf(':');
+      if (colonIdx !== -1) {
+        const k = line.trim().slice(0, colonIdx);
+        const v = line.trim().slice(colonIdx + 1).trim().replace(/^["']|["']$/g, '');
+        result[currentKey][k] = v;
+      }
+    } else {
+      const colonIdx = line.indexOf(':');
+      if (colonIdx === -1) continue;
+      const key = line.slice(0, colonIdx).trim();
+      const value = line.slice(colonIdx + 1).trim().replace(/^["']|["']$/g, '');
+      if (key) { result[key] = value || null; currentKey = key; }
+    }
   }
   return result;
 }
@@ -53,7 +67,7 @@ async function fetchImage(imageUrl) {
   }
 }
 
-async function postToBluesky(text, linkUrl, image) {
+async function postToBluesky(text, linkUrl, image, imageAlt = '') {
   const sessionRes = await fetch('https://bsky.social/xrpc/com.atproto.server.createSession', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -87,7 +101,7 @@ async function postToBluesky(text, linkUrl, image) {
       const { blob } = await blobRes.json();
       record.embed = {
         $type: 'app.bsky.embed.images',
-        images: [{ image: blob, alt: text.split('\n')[0] }],
+        images: [{ image: blob, alt: imageAlt }],
       };
     } else {
       console.warn('Bluesky image upload failed, posting without image.');
@@ -107,13 +121,13 @@ async function postToBluesky(text, linkUrl, image) {
   return `https://bsky.app/profile/${BLUESKY_HANDLE}/post/${recordKey}`;
 }
 
-async function postToMastodon(text, image) {
+async function postToMastodon(text, image, imageAlt = '') {
   let mediaIds = [];
 
   if (image) {
     const formData = new FormData();
     formData.append('file', new Blob([image.buffer], { type: image.contentType }), 'image.jpg');
-    formData.append('description', text.split('\n')[0]);
+    formData.append('description', imageAlt);
 
     const uploadRes = await fetch(`https://${MASTODON_INSTANCE}/api/v1/media`, {
       method: 'POST',
@@ -153,22 +167,24 @@ async function main() {
     const postUrl = `${SITE_URL}/posts/${slug}`;
     const text = `${fm.title}\n\n${fm.excerpt}\n\n${postUrl}`;
 
-    const image = fm.image ? await fetchImage(`${SITE_URL}${fm.image}`) : null;
-    if (fm.image && !image) console.warn('Could not fetch post image, posting without it.');
+    const imageSrc = fm.image?.src ?? (typeof fm.image === 'string' ? fm.image : null);
+    const imageAlt = fm.image?.alt || fm.title;
+    const image = imageSrc ? await fetchImage(`${SITE_URL}${imageSrc}`) : null;
+    if (imageSrc && !image) console.warn('Could not fetch post image, posting without it.');
 
     console.log(`Announcing: ${fm.title}`);
     let discussionUrl = null;
 
     if (BLUESKY_HANDLE && BLUESKY_APP_PASSWORD) {
       try {
-        discussionUrl = await postToBluesky(text, postUrl, image);
+        discussionUrl = await postToBluesky(text, postUrl, image, imageAlt);
         console.log(`Bluesky: ${discussionUrl}`);
       } catch (err) { console.error('Bluesky error:', err.message); }
     }
 
     if (MASTODON_INSTANCE && MASTODON_ACCESS_TOKEN) {
       try {
-        const mastodonUrl = await postToMastodon(text, image);
+        const mastodonUrl = await postToMastodon(text, image, imageAlt);
         console.log(`Mastodon: ${mastodonUrl}`);
         if (!discussionUrl) discussionUrl = mastodonUrl;
       } catch (err) { console.error('Mastodon error:', err.message); }
